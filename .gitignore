@@ -1,0 +1,40 @@
+# Mac OS X files
+.DS_Store
+
+# IDE files
+.idea/
+.vscode/*
+.history/
+*.vsix
+.ionide
+
+# Binaries for programs and plugins
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+
+# Go workspace file
+go.work
+config.yml
+
+# Output of the go coverage tool, specifically when used with LiteIDE
+*.out
+coverage.html
+coverage.out
+
+*.backup
+*.bak
+*.json
+*.log
+
+# Environment Variables
+.env
+
+# Additional directories not covered by .gitignore
+bin/
+_bin/*
+dist/
+tmp/
+vendor/
