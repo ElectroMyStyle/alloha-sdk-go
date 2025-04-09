@@ -49,6 +49,44 @@ func NewAllohaClient(httpClient HttpClient, apiToken, baseApiURL string) (*Alloh
 
 //region - Public Methods
 
+// FindByIMDbId finds a movie by its IMDb ID
+func (c *AllohaClient) FindByIMDbId(ctx context.Context, tmdbId string) (*FindOneResponse, error) {
+	if len(tmdbId) <= 0 {
+		return nil, EmptyIMDbIdParameterError
+	}
+
+	var err error
+	var bodyBytes []byte
+	var parsedBaseURL *url.URL
+	var statusCode = 0
+	var response *FindOneResponse
+
+	parsedBaseURL, err = url.Parse(c.baseURL)
+	if err != nil {
+		return nil, err
+	}
+
+	queryValues := parsedBaseURL.Query()
+	queryValues.Set("imdb", tmdbId)
+	parsedBaseURL.RawQuery = queryValues.Encode()
+
+	bodyBytes, statusCode, err = c.doApiRequest(ctx, http.MethodGet, parsedBaseURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	if statusCode != 200 {
+		return nil, fmt.Errorf("unexpected server response with a status code: %d", statusCode)
+	}
+
+	err = json.Unmarshal(bodyBytes, &response)
+	if err != nil {
+		return nil, err
+	}
+
+	return response, nil
+}
+
 // FindByKPId finds a movie by its KP ID
 func (c *AllohaClient) FindByKPId(ctx context.Context, kpId int) (*FindOneResponse, error) {
 	if kpId <= 0 {
@@ -156,11 +194,11 @@ func (c *AllohaClient) SetBaseApiUrl(baseApiURL string) error {
 
 // buildApiURL builds the API URL
 func buildApiURL(apiToken, baseApiUrl string) (string, error) {
-	if apiToken == "" { //  TODO len(apiToken) <= 0
+	if len(apiToken) <= 0 {
 		return "", ApiTokenEmptyError
 	}
 
-	if baseApiUrl == "" {
+	if len(baseApiUrl) <= 0 {
 		return "", BaseApiUrlEmptyError
 	}
 
