@@ -31,7 +31,7 @@ List of implemented API methods
 
 
 ## License
-The Alloha SDK for Go is licensed for use under the terms and conditions of the [MIT license Agreement](https://github.com/electromystyle/alloha-sdk-go/blob/main/LICENSE).
+The Alloha SDK for Go is licensed for use under the terms and conditions of the [MIT license Agreement](https://github.com/electromystyle/alloha-sdk-go/blob/master/LICENSE).
 
 Created by David
 
