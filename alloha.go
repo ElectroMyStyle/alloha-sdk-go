@@ -163,6 +163,44 @@ func (c *APIClient) FindByTMDbId(ctx context.Context, tmdbId int) (*FindOneRespo
 	return response, nil
 }
 
+// SearchForOneByName searches and returns a single movie by name
+func (c *APIClient) SearchForOneByName(ctx context.Context, movieName string) (*FindOneResponse, error) {
+	if len(movieName) <= 0 {
+		return nil, EmptyMovieNameParameterError
+	}
+
+	var err error
+	var bodyBytes []byte
+	var parsedBaseURL *url.URL
+	var statusCode = 0
+	var response *FindOneResponse
+
+	parsedBaseURL, err = url.Parse(c.baseURL)
+	if err != nil {
+		return nil, err
+	}
+
+	queryValues := parsedBaseURL.Query()
+	queryValues.Set("name", movieName)
+	parsedBaseURL.RawQuery = queryValues.Encode()
+
+	bodyBytes, statusCode, err = c.doApiRequest(ctx, http.MethodGet, parsedBaseURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	if statusCode != 200 {
+		return nil, fmt.Errorf("unexpected server response with a status code: %d", statusCode)
+	}
+
+	err = json.Unmarshal(bodyBytes, &response)
+	if err != nil {
+		return nil, err
+	}
+
+	return response, nil
+}
+
 // SetApiToken sets a new API token
 func (c *APIClient) SetApiToken(apiToken string) error {
 	buildURL, err := buildApiURL(apiToken, c.baseURL)
