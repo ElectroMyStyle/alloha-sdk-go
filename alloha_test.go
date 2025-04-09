@@ -147,7 +147,7 @@ func TestAPIClient_FindByIMDbId_StatusResponseSuccess(t *testing.T) {
 	assert.Equal(t, 342, movie.Data.IDKp)
 	assert.Equal(t, "tt0110912", movie.Data.IDImdb)
 	assert.True(t, movie.Data.IDTmdb.Valid)
-	assert.Equal(t, int64(680), movie.Data.IDTmdb.Int64)
+	assert.Equal(t, int32(680), movie.Data.IDTmdb.Int32)
 }
 
 func TestAPIClient_FindByKPId_InvalidKPIdParameter(t *testing.T) {
@@ -233,7 +233,7 @@ func TestAPIClient_FindByKPId_StatusResponseSuccess(t *testing.T) {
 	assert.Equal(t, "Преступники", movie.Data.Name)
 	assert.Equal(t, 4859936, movie.Data.IDKp)
 	assert.True(t, movie.Data.IDTmdb.Valid)
-	assert.Equal(t, int64(201076), movie.Data.IDTmdb.Int64)
+	assert.Equal(t, int32(201076), movie.Data.IDTmdb.Int32)
 }
 
 func TestAPIClient_FindByTMDbId_InvalidTMDbIdParameter(t *testing.T) {
@@ -317,7 +317,7 @@ func TestAPIClient_FindByTMDbId_StatusResponseSuccess(t *testing.T) {
 	assert.Equal(t, "Щенячий патруль", movie.Data.Name)
 	assert.Equal(t, 790343, movie.Data.IDKp)
 	assert.True(t, movie.Data.IDTmdb.Valid)
-	assert.Equal(t, int64(57532), movie.Data.IDTmdb.Int64)
+	assert.Equal(t, int32(57532), movie.Data.IDTmdb.Int32)
 }
 
 func TestAPIClient_SearchForOneByName_EmptyMovieNameParameter(t *testing.T) {
@@ -407,5 +407,61 @@ func TestAPIClient_SearchForOneByName_StatusResponseSuccess(t *testing.T) {
 	assert.Equal(t, 4859936, movie.Data.IDKp)
 	assert.Equal(t, "tt14531774", movie.Data.IDImdb)
 	assert.True(t, movie.Data.IDTmdb.Valid)
-	assert.Equal(t, int64(201076), movie.Data.IDTmdb.Int64)
+	assert.Equal(t, int32(201076), movie.Data.IDTmdb.Int32)
+}
+
+func TestAPIClient_SearchListByName_EmptyMovieNameParameter(t *testing.T) {
+	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {}))
+	defer ts.Close()
+
+	// Создаем клиент с тестовым сервером
+	client, err := NewAPIClient(ts.Client(), "test-api-key", ts.URL)
+	if err != nil {
+		t.Fatalf("failed to create client: %v", err)
+	}
+
+	movie, errMovie := client.SearchListByName(t.Context(), "")
+
+	// Проверяем результат
+	assert.Nil(t, movie)
+
+	assert.ErrorIs(t, errMovie, EmptyMovieNameParameterError)
+}
+
+func TestAPIClient_SearchListByName_StatusResponseSuccess(t *testing.T) {
+	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		// Проверяем наличие конкретных параметров в URL
+		assert.Equal(t, "Преступники", r.URL.Query().Get("name"))
+		assert.Equal(t, "1", r.URL.Query().Get("list"))
+		assert.Equal(t, "test-api-key", r.URL.Query().Get("token"))
+
+		// Возвращаем тестовые данные
+		w.WriteHeader(http.StatusOK)
+		_, errWrite := io.WriteString(w, "{\"status\":\"success\",\"data\":[{\"last_season\":null,\"last_episode\":null,\"name\":\"Прирождённые преступники\",\"original_name\":\"Born 2 Hustle\",\"alternative_name\":null,\"year\":2023,\"id_kp\":4925772,\"alternative_id_kp\":null,\"id_imdb\":\"tt19052266\",\"id_tmdb\":null,\"id_world_art\":null,\"token_movie\":\"dc7b21c16d3dc46c4e0c858e6aaa11\",\"date\":\"2024-12-26 16:46:08\",\"country\":\"США\",\"category\":\"Фильм\",\"genre\":\"боевик\",\"actors\":\"М. К. Гейни, К.Д. Обер, Гленн Пламмер, Мигель А. Нуньес мл., Куинтон Аарон, Карлос Мендез, Кэтерин Норланд, Энтони Кампос, Харви Б. Джексон, Натали Ставола, Винсент Ривера, Траэ Айрлэнд, Надин Емрих, Дэвид Фернандес, Карлос Айала, Дэниэл Олсен, Lyddie Ward, Дэвид Хилл, Адам Мендоза, Логан Мартин, Jennifer J. Cheung, Ana Vergara, Грегг Шарп, Dominique Leshay Alston, Остин Уку, Veronica Rich, Jonelle Rae, Amelia Mackey, Danny Castellon, Lawrence Arthur, Титус Торпе, Renlamour, Queen Sheba Short, Siddiq Manginn, Leila Marie Ulrich, Anthony Bell Jr., Erica Love, Vanessa Ramirez, Monie Szeto, Gabriel Mendoza, Tre Cinco, Momo Santos\",\"directors\":\"Траэ Айрлэнд, Liana Mendoza\",\"producers\":\"Anthony Bell Jr., Curtis Elerson, Адам Мендоза, Liana Mendoza\",\"premiere_ru\":null,\"premiere\":null,\"age_restrictions\":null,\"rating_mpaa\":null,\"rating_kp\":0,\"rating_imdb\":0,\"time\":null,\"tagline\":null,\"poster\":null,\"description\":null,\"iframe\":\"https://polygamist-as.allarknow.online/?token_movie=dc7b21c16d3dc46c4e0c858e6aaa11&token=b156e6d24abe787bc067a873c04975\",\"iframe_trailer\":\"https://polygamist-as.allarknow.online/t/?token_movie=dc7b21c16d3dc46c4e0c858e6aaa11&token=b156e6d24abe787bc067a873c04975\",\"category_id\":1,\"quality\":\"WEB-DL\",\"translation\":\"Многоголосый закадровый\",\"translation_iframe\":{\"72\":{\"name\":\"Многоголосый закадровый\",\"quality\":\"WEB-DL\",\"iframe\":\"https://polygamist-as.allarknow.online/?token_movie=dc7b21c16d3dc46c4e0c858e6aaa11&translation=72&token=b156e6d24abe787bc067a873c04975\",\"adv\":true}},\"lgbt\":false,\"uhd\":false},{\"last_season\":null,\"last_episode\":null,\"name\":\"Преступники в системе правительства\",\"original_name\":\"Perpetrators in Government Systems\",\"alternative_name\":null,\"year\":2023,\"id_kp\":5026466,\"alternative_id_kp\":null,\"id_imdb\":\"tt20518348\",\"id_tmdb\":null,\"id_world_art\":null,\"token_movie\":\"a9a66ebf9dc5fe3764345db86ed703\",\"date\":\"2024-09-16 19:59:06\",\"country\":\"США\",\"category\":\"Фильм\",\"genre\":\"триллер, криминал\",\"actors\":\"Dakarai Akil, Cory Banks, Джейсон Лодер, Джоуи Тормонд, Тео Хэддон, Stacee Nino, Энтони Р. Пейдж, Angel L. Henderson, Johnny Green Jr., Erion Browner, Elijah Byars, Ethan Paul, John M. Johnson, Coach Wes Lee, Marcus E. Munroe, Aaron Spells, Kelcey Seth, Martin Aramayo, Wade Marbaugh, Mckinley Lewis, Diva Padilla, Bart Vantieghem, David Samonte, Jomahl Gildersleve, Brian Mephisto Legree, Michael Augustine, Jay Westbrook, Charles Zeno, Aigne Morris, Chayim Usher, Isaiah Faulkner\",\"directors\":\"Aaron Spells, Zuberi Morrison\",\"producers\":\"Laniqua Collins, Timothy Richardson, Aaron Spells\",\"premiere_ru\":null,\"premiere\":null,\"age_restrictions\":null,\"rating_mpaa\":null,\"rating_kp\":0,\"rating_imdb\":0,\"time\":null,\"tagline\":null,\"poster\":null,\"description\":null,\"iframe\":\"https://polygamist-as.allarknow.online/?token_movie=a9a66ebf9dc5fe3764345db86ed703&token=b156e6d24abe787bc067a873c04975\",\"iframe_trailer\":\"https://polygamist-as.allarknow.online/t/?token_movie=a9a66ebf9dc5fe3764345db86ed703&token=b156e6d24abe787bc067a873c04975\",\"category_id\":1,\"quality\":\"WEB-DL\",\"translation\":\"Многоголосый закадровый\",\"translation_iframe\":{\"72\":{\"name\":\"Многоголосый закадровый\",\"quality\":\"WEB-DL\",\"iframe\":\"https://polygamist-as.allarknow.online/?token_movie=a9a66ebf9dc5fe3764345db86ed703&translation=72&token=b156e6d24abe787bc067a873c04975\",\"adv\":true}},\"lgbt\":false,\"uhd\":false}],\"next_page\":null,\"prev_page\":null}")
+		if errWrite != nil {
+			t.Errorf("failed to write data to response: %v", errWrite)
+		}
+	}))
+	defer ts.Close()
+
+	// Создаем клиент с тестовым сервером
+	client, err := NewAPIClient(ts.Client(), "test-api-key", ts.URL)
+	if err != nil {
+		t.Fatalf("failed to create client: %v", err)
+	}
+
+	movie, errMovie := client.SearchListByName(t.Context(), "Преступники")
+
+	// Проверяем результат
+	assert.Nil(t, errMovie)
+
+	assert.Equal(t, "success", movie.Status)
+	assert.Empty(t, movie.ErrorInfo)
+
+	assert.Equal(t, 2, len(movie.Data))
+
+	assert.False(t, movie.Data[0].LastSeason.Valid)
+	assert.False(t, movie.Data[0].LastEpisode.Valid)
+	assert.Equal(t, "Прирождённые преступники", movie.Data[0].Name)
+	assert.Equal(t, 4925772, movie.Data[0].IDKp)
 }
