@@ -87,6 +87,44 @@ func (c *AllohaClient) FindByKPId(ctx context.Context, kpId int) (*FindOneRespon
 	return response, nil
 }
 
+// FindByTMDbId finds a movie by its TMDb ID
+func (c *AllohaClient) FindByTMDbId(ctx context.Context, tmdbId int) (*FindOneResponse, error) {
+	if tmdbId <= 0 {
+		return nil, InvalidTMDbIdParameterError
+	}
+
+	var err error
+	var bodyBytes []byte
+	var parsedBaseURL *url.URL
+	var statusCode = 0
+	var response *FindOneResponse
+
+	parsedBaseURL, err = url.Parse(c.baseURL)
+	if err != nil {
+		return nil, err
+	}
+
+	queryValues := parsedBaseURL.Query()
+	queryValues.Set("tmdb", strconv.Itoa(tmdbId))
+	parsedBaseURL.RawQuery = queryValues.Encode()
+
+	bodyBytes, statusCode, err = c.doApiRequest(ctx, http.MethodGet, parsedBaseURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	if statusCode != 200 {
+		return nil, fmt.Errorf("unexpected server response with a status code: %d", statusCode)
+	}
+
+	err = json.Unmarshal(bodyBytes, &response)
+	if err != nil {
+		return nil, err
+	}
+
+	return response, nil
+}
+
 // SetApiToken sets a new API token
 func (c *AllohaClient) SetApiToken(apiToken string) error {
 	buildURL, err := buildApiURL(apiToken, c.baseURL)
