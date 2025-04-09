@@ -29,6 +29,19 @@ List of implemented API methods
 | 6 | SearchListByName | Searches and returns a list of movies by name |
 
 
+## Testing
+To start testing, you can use the command:
+```bash
+go test -v -timeout 30s ./...
+```
+If the `make` utility is available on your device, you can run the test with the command:
+```bash
+make test
+```
+or simply
+```bash
+make
+```
 
 ## License
 The Alloha SDK for Go is licensed for use under the terms and conditions of the [MIT license Agreement](https://github.com/electromystyle/alloha-sdk-go/blob/master/LICENSE).
