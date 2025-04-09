@@ -64,6 +64,105 @@ func TestAllohaClient_buildApiURL(t *testing.T) {
 	}
 }
 
+func TestAllohaClient_FindByIMDbId_EmptyIMDbIdParameter(t *testing.T) {
+	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {}))
+	defer ts.Close()
+
+	// Создаем клиент с тестовым сервером
+	client, err := NewAllohaClient(ts.Client(), "test-api-key", ts.URL)
+	if err != nil {
+		t.Fatalf("failed to create client: %v", err)
+	}
+
+	movie, errMovie := client.FindByIMDbId(t.Context(), "")
+
+	// Проверяем результат
+	assert.Nil(t, movie)
+
+	assert.ErrorIs(t, errMovie, EmptyIMDbIdParameterError)
+}
+
+func TestAllohaClient_FindByIMDbId_StatusResponseError(t *testing.T) {
+	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		// Проверяем наличие конкретных параметров в URL
+		assert.Equal(t, "tt-id", r.URL.Query().Get("imdb"))
+		assert.Equal(t, "test-api-key", r.URL.Query().Get("token"))
+
+		// Возвращаем тестовые данные
+		movie := &FindOneResponse{
+			Status:    "error",
+			ErrorInfo: "not movie",
+		}
+
+		w.WriteHeader(http.StatusOK)
+		errEncode := json.NewEncoder(w).Encode(movie)
+		if errEncode != nil {
+			t.Errorf("failed to encode movie response: %v", errEncode)
+		}
+	}))
+	defer ts.Close()
+
+	// Создаем клиент с тестовым сервером
+	client, err := NewAllohaClient(ts.Client(), "test-api-key", ts.URL)
+	if err != nil {
+		t.Fatalf("failed to create client: %v", err)
+	}
+
+	movie, errMovie := client.FindByIMDbId(t.Context(), "tt-id")
+
+	// Проверяем результат
+	assert.Nil(t, errMovie)
+
+	assert.Equal(t, "error", movie.Status)
+	assert.Equal(t, "not movie", movie.ErrorInfo)
+	assert.Nil(t, movie.Data)
+}
+
+func TestAllohaClient_FindByIMDbId_StatusResponseSuccess(t *testing.T) {
+	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		// Проверяем наличие конкретных параметров в URL
+		assert.Equal(t, "tt0110912", r.URL.Query().Get("imdb"))
+		assert.Equal(t, "test-api-key", r.URL.Query().Get("token"))
+
+		// Возвращаем тестовые данные
+		movie := &FindOneResponse{
+			Status: "success",
+			Data: &MovieData{
+				Name:   "Криминальное чтиво",
+				IDKp:   342,
+				IDImdb: "tt0110912",
+				IDTmdb: 680,
+			},
+		}
+
+		w.WriteHeader(http.StatusOK)
+		errEncode := json.NewEncoder(w).Encode(movie)
+		if errEncode != nil {
+			t.Errorf("failed to encode movie response: %v", errEncode)
+		}
+	}))
+	defer ts.Close()
+
+	// Создаем клиент с тестовым сервером
+	client, err := NewAllohaClient(ts.Client(), "test-api-key", ts.URL)
+	if err != nil {
+		t.Fatalf("failed to create client: %v", err)
+	}
+
+	movie, errMovie := client.FindByIMDbId(t.Context(), "tt0110912")
+
+	// Проверяем результат
+	assert.Nil(t, errMovie)
+
+	assert.Equal(t, "success", movie.Status)
+	assert.Empty(t, movie.ErrorInfo)
+
+	assert.Equal(t, "Криминальное чтиво", movie.Data.Name)
+	assert.Equal(t, 342, movie.Data.IDKp)
+	assert.Equal(t, "tt0110912", movie.Data.IDImdb)
+	assert.Equal(t, 680, movie.Data.IDTmdb)
+}
+
 func TestAllohaClient_FindByKPId_InvalidKPIdParameter(t *testing.T) {
 	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {}))
 	defer ts.Close()
