@@ -320,6 +320,66 @@ func TestAPIClient_FindByTMDbId_StatusResponseSuccess(t *testing.T) {
 	assert.Equal(t, int32(57532), movie.Data.IDTmdb.Int32)
 }
 
+func TestAPIClient_GetListOfLatestSeries_InvalidPageNumberParameter(t *testing.T) {
+	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {}))
+	defer ts.Close()
+
+	// Создаем клиент с тестовым сервером
+	client, err := NewAPIClient(ts.Client(), "test-api-key", ts.URL)
+	if err != nil {
+		t.Fatalf("failed to create client: %v", err)
+	}
+
+	movie, errMovie := client.GetListOfLatestSeries(t.Context(), 0)
+
+	// Проверяем результат
+	assert.Nil(t, movie)
+
+	assert.ErrorIs(t, errMovie, InvalidPageNumberParameterError)
+}
+
+func TestAPIClient_GetListOfLatestSeries_StatusResponseSuccess(t *testing.T) {
+	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		// Проверяем наличие конкретных параметров в URL
+		assert.Equal(t, "serial", r.URL.Query().Get("last"))
+		assert.Equal(t, "date", r.URL.Query().Get("order"))
+		assert.Equal(t, "1", r.URL.Query().Get("page"))
+		assert.Equal(t, "test-api-key", r.URL.Query().Get("token"))
+
+		// Возвращаем тестовые данные
+		w.WriteHeader(http.StatusOK)
+		_, errWrite := io.WriteString(w, "{\"status\":\"success\",\"data\":[{\"season\":1,\"episode\":10,\"translation\":96,\"quality\":\"WEB-DL\",\"skip_time\":null,\"adv_presence\":0,\"name\":\"Пульс\",\"id_item\":78438,\"original_name\":\"Pulse\",\"category\":\"Сериал\",\"alternative_name\":null,\"year\":2025,\"id_kp\":5600611,\"alternative_id_kp\":null,\"id_imdb\":\"tt31407116\",\"id_tmdb\":247784,\"id_world_art\":null,\"token_movie\":\"d0629582ce01c164b7e7f83ff76b8a\",\"date\":\"2025-04-09 23:46:57\",\"iframe\":\"https://polygamist-as.allarknow.online/?token_movie=d0629582ce01c164b7e7f83ff76b8a&token=b156e6d24abe787bc067a873c04975\",\"adv\":false,\"category_id\":2,\"iframe_last\":\"https://polygamist-as.allarknow.online/?token_movie=d0629582ce01c164b7e7f83ff76b8a&season=1&episode=10&translation=96&token=b156e6d24abe787bc067a873c04975\",\"iframe_trailer\":null,\"lgbt\":false,\"uhd\":false},{\"season\":1,\"episode\":9,\"translation\":96,\"quality\":\"WEB-DL\",\"skip_time\":null,\"adv_presence\":0,\"name\":\"Пульс\",\"id_item\":78438,\"original_name\":\"Pulse\",\"category\":\"Сериал\",\"alternative_name\":null,\"year\":2025,\"id_kp\":5600611,\"alternative_id_kp\":null,\"id_imdb\":\"tt31407116\",\"id_tmdb\":247784,\"id_world_art\":null,\"token_movie\":\"d0629582ce01c164b7e7f83ff76b8a\",\"date\":\"2025-04-09 23:46:16\",\"iframe\":\"https://polygamist-as.allarknow.online/?token_movie=d0629582ce01c164b7e7f83ff76b8a&token=b156e6d24abe787bc067a873c04975\",\"adv\":false,\"category_id\":2,\"iframe_last\":\"https://polygamist-as.allarknow.online/?token_movie=d0629582ce01c164b7e7f83ff76b8a&season=1&episode=9&translation=96&token=b156e6d24abe787bc067a873c04975\",\"iframe_trailer\":null,\"lgbt\":false,\"uhd\":false}],\"next_page\":2,\"prev_page\":null}")
+		if errWrite != nil {
+			t.Errorf("failed to write data to response: %v", errWrite)
+		}
+	}))
+	defer ts.Close()
+
+	// Создаем клиент с тестовым сервером
+	client, err := NewAPIClient(ts.Client(), "test-api-key", ts.URL)
+	if err != nil {
+		t.Fatalf("failed to create client: %v", err)
+	}
+
+	movie, errMovie := client.GetListOfLatestSeries(t.Context(), 1)
+
+	// Проверяем результат
+	assert.Nil(t, errMovie)
+
+	assert.Equal(t, "success", movie.Status)
+	assert.Empty(t, movie.ErrorInfo)
+
+	assert.Equal(t, 2, len(movie.Data))
+
+	assert.Equal(t, 1, movie.Data[0].Season)
+	assert.Equal(t, 10, movie.Data[0].Episode)
+	assert.Equal(t, "Пульс", movie.Data[0].Name)
+	assert.Equal(t, 5600611, movie.Data[0].IDKp)
+
+	assert.True(t, movie.NextPage.Valid)
+	assert.Equal(t, int32(2), movie.NextPage.Int32)
+}
+
 func TestAPIClient_SearchForOneByName_EmptyMovieNameParameter(t *testing.T) {
 	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {}))
 	defer ts.Close()
