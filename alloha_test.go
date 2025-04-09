@@ -9,7 +9,7 @@ import (
 	"testing"
 )
 
-func TestAllohaClient_buildApiURL(t *testing.T) {
+func TestAPIClient_buildApiURL(t *testing.T) {
 	tests := []struct {
 		name        string
 		apiToken    string
@@ -64,12 +64,12 @@ func TestAllohaClient_buildApiURL(t *testing.T) {
 	}
 }
 
-func TestAllohaClient_FindByIMDbId_EmptyIMDbIdParameter(t *testing.T) {
+func TestAPIClient_FindByIMDbId_EmptyIMDbIdParameter(t *testing.T) {
 	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {}))
 	defer ts.Close()
 
 	// Создаем клиент с тестовым сервером
-	client, err := NewAllohaClient(ts.Client(), "test-api-key", ts.URL)
+	client, err := NewAPIClient(ts.Client(), "test-api-key", ts.URL)
 	if err != nil {
 		t.Fatalf("failed to create client: %v", err)
 	}
@@ -82,7 +82,7 @@ func TestAllohaClient_FindByIMDbId_EmptyIMDbIdParameter(t *testing.T) {
 	assert.ErrorIs(t, errMovie, EmptyIMDbIdParameterError)
 }
 
-func TestAllohaClient_FindByIMDbId_StatusResponseError(t *testing.T) {
+func TestAPIClient_FindByIMDbId_StatusResponseError(t *testing.T) {
 	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		// Проверяем наличие конкретных параметров в URL
 		assert.Equal(t, "tt-id", r.URL.Query().Get("imdb"))
@@ -103,7 +103,7 @@ func TestAllohaClient_FindByIMDbId_StatusResponseError(t *testing.T) {
 	defer ts.Close()
 
 	// Создаем клиент с тестовым сервером
-	client, err := NewAllohaClient(ts.Client(), "test-api-key", ts.URL)
+	client, err := NewAPIClient(ts.Client(), "test-api-key", ts.URL)
 	if err != nil {
 		t.Fatalf("failed to create client: %v", err)
 	}
@@ -118,7 +118,7 @@ func TestAllohaClient_FindByIMDbId_StatusResponseError(t *testing.T) {
 	assert.Nil(t, movie.Data)
 }
 
-func TestAllohaClient_FindByIMDbId_StatusResponseSuccess(t *testing.T) {
+func TestAPIClient_FindByIMDbId_StatusResponseSuccess(t *testing.T) {
 	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		// Проверяем наличие конкретных параметров в URL
 		assert.Equal(t, "tt0110912", r.URL.Query().Get("imdb"))
@@ -144,7 +144,7 @@ func TestAllohaClient_FindByIMDbId_StatusResponseSuccess(t *testing.T) {
 	defer ts.Close()
 
 	// Создаем клиент с тестовым сервером
-	client, err := NewAllohaClient(ts.Client(), "test-api-key", ts.URL)
+	client, err := NewAPIClient(ts.Client(), "test-api-key", ts.URL)
 	if err != nil {
 		t.Fatalf("failed to create client: %v", err)
 	}
@@ -163,12 +163,12 @@ func TestAllohaClient_FindByIMDbId_StatusResponseSuccess(t *testing.T) {
 	assert.Equal(t, 680, movie.Data.IDTmdb)
 }
 
-func TestAllohaClient_FindByKPId_InvalidKPIdParameter(t *testing.T) {
+func TestAPIClient_FindByKPId_InvalidKPIdParameter(t *testing.T) {
 	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {}))
 	defer ts.Close()
 
 	// Создаем клиент с тестовым сервером
-	client, err := NewAllohaClient(ts.Client(), "test-api-key", ts.URL)
+	client, err := NewAPIClient(ts.Client(), "test-api-key", ts.URL)
 	if err != nil {
 		t.Fatalf("failed to create client: %v", err)
 	}
@@ -181,7 +181,7 @@ func TestAllohaClient_FindByKPId_InvalidKPIdParameter(t *testing.T) {
 	assert.ErrorIs(t, errMovie, InvalidKPIdParameterError)
 }
 
-func TestAllohaClient_FindByKPId_StatusResponseError(t *testing.T) {
+func TestAPIClient_FindByKPId_StatusResponseError(t *testing.T) {
 	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		// Проверяем наличие конкретных параметров в URL
 		assert.Equal(t, "5119525", r.URL.Query().Get("kp"))
@@ -202,7 +202,7 @@ func TestAllohaClient_FindByKPId_StatusResponseError(t *testing.T) {
 	defer ts.Close()
 
 	// Создаем клиент с тестовым сервером
-	client, err := NewAllohaClient(ts.Client(), "test-api-key", ts.URL)
+	client, err := NewAPIClient(ts.Client(), "test-api-key", ts.URL)
 	if err != nil {
 		t.Fatalf("failed to create client: %v", err)
 	}
@@ -217,7 +217,7 @@ func TestAllohaClient_FindByKPId_StatusResponseError(t *testing.T) {
 	assert.Nil(t, movie.Data)
 }
 
-func TestAllohaClient_FindByKPId_StatusResponseSuccess(t *testing.T) {
+func TestAPIClient_FindByKPId_StatusResponseSuccess(t *testing.T) {
 	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		// Проверяем наличие конкретных параметров в URL
 		assert.Equal(t, "5119525", r.URL.Query().Get("kp"))
@@ -241,7 +241,7 @@ func TestAllohaClient_FindByKPId_StatusResponseSuccess(t *testing.T) {
 	defer ts.Close()
 
 	// Создаем клиент с тестовым сервером
-	client, err := NewAllohaClient(ts.Client(), "test-api-key", ts.URL)
+	client, err := NewAPIClient(ts.Client(), "test-api-key", ts.URL)
 	if err != nil {
 		t.Fatalf("failed to create client: %v", err)
 	}
@@ -258,12 +258,12 @@ func TestAllohaClient_FindByKPId_StatusResponseSuccess(t *testing.T) {
 	assert.Equal(t, 5119525, movie.Data.IDKp)
 }
 
-func TestAllohaClient_FindByTMDbId_InvalidTMDbIdParameter(t *testing.T) {
+func TestAPIClient_FindByTMDbId_InvalidTMDbIdParameter(t *testing.T) {
 	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {}))
 	defer ts.Close()
 
 	// Создаем клиент с тестовым сервером
-	client, err := NewAllohaClient(ts.Client(), "test-api-key", ts.URL)
+	client, err := NewAPIClient(ts.Client(), "test-api-key", ts.URL)
 	if err != nil {
 		t.Fatalf("failed to create client: %v", err)
 	}
@@ -276,7 +276,7 @@ func TestAllohaClient_FindByTMDbId_InvalidTMDbIdParameter(t *testing.T) {
 	assert.ErrorIs(t, errMovie, InvalidTMDbIdParameterError)
 }
 
-func TestAllohaClient_FindByTMDbId_StatusResponseError(t *testing.T) {
+func TestAPIClient_FindByTMDbId_StatusResponseError(t *testing.T) {
 	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		// Проверяем наличие конкретных параметров в URL
 		assert.Equal(t, "21029674", r.URL.Query().Get("tmdb"))
@@ -297,7 +297,7 @@ func TestAllohaClient_FindByTMDbId_StatusResponseError(t *testing.T) {
 	defer ts.Close()
 
 	// Создаем клиент с тестовым сервером
-	client, err := NewAllohaClient(ts.Client(), "test-api-key", ts.URL)
+	client, err := NewAPIClient(ts.Client(), "test-api-key", ts.URL)
 	if err != nil {
 		t.Fatalf("failed to create client: %v", err)
 	}
@@ -312,7 +312,7 @@ func TestAllohaClient_FindByTMDbId_StatusResponseError(t *testing.T) {
 	assert.Nil(t, movie.Data)
 }
 
-func TestAllohaClient_FindByTMDbId_StatusResponseSuccess(t *testing.T) {
+func TestAPIClient_FindByTMDbId_StatusResponseSuccess(t *testing.T) {
 	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		// Проверяем наличие конкретных параметров в URL
 		assert.Equal(t, "57532", r.URL.Query().Get("tmdb"))
@@ -337,7 +337,7 @@ func TestAllohaClient_FindByTMDbId_StatusResponseSuccess(t *testing.T) {
 	defer ts.Close()
 
 	// Создаем клиент с тестовым сервером
-	client, err := NewAllohaClient(ts.Client(), "test-api-key", ts.URL)
+	client, err := NewAPIClient(ts.Client(), "test-api-key", ts.URL)
 	if err != nil {
 		t.Fatalf("failed to create client: %v", err)
 	}

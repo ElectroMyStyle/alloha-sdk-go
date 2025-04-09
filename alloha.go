@@ -20,8 +20,8 @@ type HttpClient interface {
 	Do(req *http.Request) (*http.Response, error)
 }
 
-// AllohaClient is the structure of the client API
-type AllohaClient struct {
+// APIClient is the structure of the client API
+type APIClient struct {
 	apiToken string
 	baseURL  string
 	client   HttpClient
@@ -29,14 +29,14 @@ type AllohaClient struct {
 
 //region - Constructor
 
-// NewAllohaClient creates a new AllohaClient instance
-func NewAllohaClient(httpClient HttpClient, apiToken, baseApiURL string) (*AllohaClient, error) {
+// NewAPIClient creates a new APIClient instance
+func NewAPIClient(httpClient HttpClient, apiToken, baseApiURL string) (*APIClient, error) {
 	buildURL, err := buildApiURL(apiToken, baseApiURL)
 	if err != nil {
 		return nil, err
 	}
 
-	client := &AllohaClient{
+	client := &APIClient{
 		apiToken: apiToken,
 		baseURL:  buildURL,
 		client:   httpClient,
@@ -50,7 +50,7 @@ func NewAllohaClient(httpClient HttpClient, apiToken, baseApiURL string) (*Alloh
 //region - Public Methods
 
 // FindByIMDbId finds a movie by its IMDb ID
-func (c *AllohaClient) FindByIMDbId(ctx context.Context, tmdbId string) (*FindOneResponse, error) {
+func (c *APIClient) FindByIMDbId(ctx context.Context, tmdbId string) (*FindOneResponse, error) {
 	if len(tmdbId) <= 0 {
 		return nil, EmptyIMDbIdParameterError
 	}
@@ -88,7 +88,7 @@ func (c *AllohaClient) FindByIMDbId(ctx context.Context, tmdbId string) (*FindOn
 }
 
 // FindByKPId finds a movie by its KP ID
-func (c *AllohaClient) FindByKPId(ctx context.Context, kpId int) (*FindOneResponse, error) {
+func (c *APIClient) FindByKPId(ctx context.Context, kpId int) (*FindOneResponse, error) {
 	if kpId <= 0 {
 		return nil, InvalidKPIdParameterError
 	}
@@ -126,7 +126,7 @@ func (c *AllohaClient) FindByKPId(ctx context.Context, kpId int) (*FindOneRespon
 }
 
 // FindByTMDbId finds a movie by its TMDb ID
-func (c *AllohaClient) FindByTMDbId(ctx context.Context, tmdbId int) (*FindOneResponse, error) {
+func (c *APIClient) FindByTMDbId(ctx context.Context, tmdbId int) (*FindOneResponse, error) {
 	if tmdbId <= 0 {
 		return nil, InvalidTMDbIdParameterError
 	}
@@ -164,7 +164,7 @@ func (c *AllohaClient) FindByTMDbId(ctx context.Context, tmdbId int) (*FindOneRe
 }
 
 // SetApiToken sets a new API token
-func (c *AllohaClient) SetApiToken(apiToken string) error {
+func (c *APIClient) SetApiToken(apiToken string) error {
 	buildURL, err := buildApiURL(apiToken, c.baseURL)
 	if err != nil {
 		return err
@@ -177,7 +177,7 @@ func (c *AllohaClient) SetApiToken(apiToken string) error {
 }
 
 // SetBaseApiUrl sets a new base API URL
-func (c *AllohaClient) SetBaseApiUrl(baseApiURL string) error {
+func (c *APIClient) SetBaseApiUrl(baseApiURL string) error {
 	buildURL, err := buildApiURL(c.apiToken, baseApiURL)
 	if err != nil {
 		return err
@@ -223,7 +223,7 @@ func buildApiURL(apiToken, baseApiUrl string) (string, error) {
 
 // doApiRequest executes the specified HTTP request to the specified URL with the specified request body and returns
 // the response body, the response code, and the error, if any.
-func (c *AllohaClient) doApiRequest(ctx context.Context, method, endpointApiUrl string, requestBody []byte) ([]byte, int, error) {
+func (c *APIClient) doApiRequest(ctx context.Context, method, endpointApiUrl string, requestBody []byte) ([]byte, int, error) {
 	var bodyBytes []byte
 	var err error
 	var req *http.Request
