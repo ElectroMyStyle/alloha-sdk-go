@@ -5,18 +5,18 @@ import (
 	"encoding/json"
 )
 
-// NullInt64 represents a nullable int64
-type NullInt64 sql.NullInt64
+// NullInt32 represents a nullable int32
+type NullInt32 sql.NullInt32
 
 // UnmarshalJSON implements the json.Unmarshaler interface
-func (n *NullInt64) UnmarshalJSON(b []byte) error {
-	var v *int64
+func (n *NullInt32) UnmarshalJSON(b []byte) error {
+	var v *int32
 	if err := json.Unmarshal(b, &v); err != nil {
 		return err
 	}
 
 	if v != nil {
-		n.Int64 = *v
+		n.Int32 = *v
 		n.Valid = true
 	} else {
 		n.Valid = false
@@ -30,9 +30,9 @@ type FindOneResponse struct {
 	// Request status ("success" or "error")
 	Status string `json:"status"`
 	// Error information (only for the "error" status)
-	ErrorInfo string `json:"error_info,omitempty"`
+	ErrorInfo string `json:"error_info"`
 	// The movie or TV series data field
-	Data *MovieData `json:"data,omitempty"`
+	Data *MovieData `json:"data"`
 }
 
 // FindListResponse represents a structure for processing the API response to data search
@@ -40,13 +40,13 @@ type FindListResponse struct {
 	// Request status ("success" or "error")
 	Status string `json:"status"`
 	// Error information (only for the "error" status)
-	ErrorInfo string `json:"error_info,omitempty"`
+	ErrorInfo string `json:"error_info"`
 	// The movie or TV series data field
-	Data []*MovieSearchData `json:"data,omitempty"`
+	Data []*MovieSearchData `json:"data"`
 	// Next page (optional)
-	NextPage *int `json:"next_page,omitempty"`
+	NextPage NullInt32 `json:"next_page"`
 	// Previous page (optional)
-	PrevPage *int `json:"prev_page,omitempty"`
+	PrevPage NullInt32 `json:"prev_page"`
 }
 
 // MovieData represents the structure of information about a movie or TV series
@@ -57,10 +57,10 @@ type MovieData struct {
 	Year                  int                          `json:"year"`
 	Category              int                          `json:"category"`
 	IDKp                  int                          `json:"id_kp"`
-	AlternativeIDKp       NullInt64                    `json:"alternative_id_kp"`
+	AlternativeIDKp       NullInt32                    `json:"alternative_id_kp"`
 	IDImdb                string                       `json:"id_imdb"`
-	IDTmdb                NullInt64                    `json:"id_tmdb"`
-	IDWorldArt            NullInt64                    `json:"id_world_art"`
+	IDTmdb                NullInt32                    `json:"id_tmdb"`
+	IDWorldArt            NullInt32                    `json:"id_world_art"`
 	TokenMovie            string                       `json:"token_movie"`
 	Country               string                       `json:"country"`
 	Genre                 string                       `json:"genre"`
@@ -69,7 +69,7 @@ type MovieData struct {
 	Producers             string                       `json:"producers"`
 	PremiereRu            string                       `json:"premiere_ru"`
 	Premiere              string                       `json:"premiere"`
-	AgeRestrictions       NullInt64                    `json:"age_restrictions"`
+	AgeRestrictions       NullInt32                    `json:"age_restrictions"`
 	RatingMpaa            string                       `json:"rating_mpaa"`
 	RatingKp              float64                      `json:"rating_kp"`
 	RatingImdb            float64                      `json:"rating_imdb"`
@@ -91,18 +91,18 @@ type MovieData struct {
 
 // MovieSearchData represents the structure of information about a movie or TV series
 type MovieSearchData struct {
-	LastSeason            NullInt64                    `json:"last_season"`
-	LastEpisode           NullInt64                    `json:"last_episode"`
+	LastSeason            NullInt32                    `json:"last_season"`
+	LastEpisode           NullInt32                    `json:"last_episode"`
 	Name                  string                       `json:"name"`
 	OriginalName          string                       `json:"original_name"`
 	AlternativeName       string                       `json:"alternative_name"`
 	Year                  int                          `json:"year"`
-	Category              int                          `json:"category"`
+	CategoryId            int                          `json:"category_id"`
 	IDKp                  int                          `json:"id_kp"`
-	AlternativeIDKp       NullInt64                    `json:"alternative_id_kp"`
+	AlternativeIDKp       NullInt32                    `json:"alternative_id_kp"`
 	IDImdb                string                       `json:"id_imdb"`
-	IDTmdb                NullInt64                    `json:"id_tmdb"`
-	IDWorldArt            NullInt64                    `json:"id_world_art"`
+	IDTmdb                NullInt32                    `json:"id_tmdb"`
+	IDWorldArt            NullInt32                    `json:"id_world_art"`
 	TokenMovie            string                       `json:"token_movie"`
 	Country               string                       `json:"country"`
 	Genre                 string                       `json:"genre"`
@@ -111,7 +111,7 @@ type MovieSearchData struct {
 	Producers             string                       `json:"producers"`
 	PremiereRu            string                       `json:"premiere_ru"`
 	Premiere              string                       `json:"premiere"`
-	AgeRestrictions       NullInt64                    `json:"age_restrictions"`
+	AgeRestrictions       NullInt32                    `json:"age_restrictions"`
 	RatingMpaa            string                       `json:"rating_mpaa"`
 	RatingKp              float64                      `json:"rating_kp"`
 	RatingImdb            float64                      `json:"rating_imdb"`
