@@ -49,6 +49,20 @@ type FindListResponse struct {
 	PrevPage NullInt32 `json:"prev_page"`
 }
 
+// ListOfLatestSeriesResponse represents a structure for handling an API response to a list of the latest episodes of a TV series
+type ListOfLatestSeriesResponse struct {
+	// Request status ("success" or "error")
+	Status string `json:"status"`
+	// Error information (only for the "error" status)
+	ErrorInfo string `json:"error_info"`
+	// TV series latest episode data field
+	Data []*SeriesData `json:"data"`
+	// Next page (optional)
+	NextPage NullInt32 `json:"next_page"`
+	// Previous page (optional)
+	PrevPage NullInt32 `json:"prev_page"`
+}
+
 // MovieData represents the structure of information about a movie or TV series
 type MovieData struct {
 	Name                  string                       `json:"name"`
@@ -143,6 +157,35 @@ type SeasonIframe struct {
 	Iframe   string                   `json:"iframe"`
 	Season   int                      `json:"season"`
 	Episodes map[string]EpisodeIframe `json:"episodes"`
+}
+
+// SeriesData represents the structure of information about TV series
+type SeriesData struct {
+	Season          int       `json:"season"`
+	Episode         int       `json:"episode"`
+	Translation     int       `json:"translation"`
+	Quality         string    `json:"quality"`
+	AdvPresence     int       `json:"adv_presence"`
+	Name            string    `json:"name"`
+	IDItem          int       `json:"id_item"`
+	OriginalName    string    `json:"original_name"`
+	Category        string    `json:"category"`
+	AlternativeName string    `json:"alternative_name"`
+	Year            int       `json:"year"`
+	IDKp            int       `json:"id_kp"`
+	AlternativeIDKp NullInt32 `json:"alternative_id_kp"`
+	IDImdb          string    `json:"id_imdb"`
+	IDTmdb          NullInt32 `json:"id_tmdb"`
+	IDWorldArt      NullInt32 `json:"id_world_art"`
+	TokenMovie      string    `json:"token_movie"`
+	Date            string    `json:"date"`
+	Iframe          string    `json:"iframe"`
+	Adv             bool      `json:"adv"`
+	CategoryId      int       `json:"category_id"`
+	IframeLast      string    `json:"iframe_last"`
+	IframeTrailer   string    `json:"iframe_trailer"`
+	Lgbt            bool      `json:"lgbt"`
+	Uhd             bool      `json:"uhd"`
 }
 
 // TranslationIframe represents the structure of the translation iframe
