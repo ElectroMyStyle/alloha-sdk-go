@@ -354,3 +354,102 @@ func TestAPIClient_FindByTMDbId_StatusResponseSuccess(t *testing.T) {
 	assert.Equal(t, 790343, movie.Data.IDKp)
 	assert.Equal(t, 57532, movie.Data.IDTmdb)
 }
+
+func TestAPIClient_SearchForOneByName_EmptyMovieNameParameter(t *testing.T) {
+	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {}))
+	defer ts.Close()
+
+	// Создаем клиент с тестовым сервером
+	client, err := NewAPIClient(ts.Client(), "test-api-key", ts.URL)
+	if err != nil {
+		t.Fatalf("failed to create client: %v", err)
+	}
+
+	movie, errMovie := client.SearchForOneByName(t.Context(), "")
+
+	// Проверяем результат
+	assert.Nil(t, movie)
+
+	assert.ErrorIs(t, errMovie, EmptyMovieNameParameterError)
+}
+
+func TestAPIClient_SearchForOneByName_StatusResponseError(t *testing.T) {
+	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		// Проверяем наличие конкретных параметров в URL
+		assert.Equal(t, "Преступники", r.URL.Query().Get("name"))
+		assert.Equal(t, "test-api-key", r.URL.Query().Get("token"))
+
+		// Возвращаем тестовые данные
+		movie := &FindOneResponse{
+			Status:    "error",
+			ErrorInfo: "not movie",
+		}
+
+		w.WriteHeader(http.StatusOK)
+		errEncode := json.NewEncoder(w).Encode(movie)
+		if errEncode != nil {
+			t.Errorf("failed to encode movie response: %v", errEncode)
+		}
+	}))
+	defer ts.Close()
+
+	// Создаем клиент с тестовым сервером
+	client, err := NewAPIClient(ts.Client(), "test-api-key", ts.URL)
+	if err != nil {
+		t.Fatalf("failed to create client: %v", err)
+	}
+
+	movie, errMovie := client.SearchForOneByName(t.Context(), "Преступники")
+
+	// Проверяем результат
+	assert.Nil(t, errMovie)
+
+	assert.Equal(t, "error", movie.Status)
+	assert.Equal(t, "not movie", movie.ErrorInfo)
+	assert.Nil(t, movie.Data)
+}
+
+func TestAPIClient_SearchForOneByName_StatusResponseSuccess(t *testing.T) {
+	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		// Проверяем наличие конкретных параметров в URL
+		assert.Equal(t, "Преступники", r.URL.Query().Get("name"))
+		assert.Equal(t, "test-api-key", r.URL.Query().Get("token"))
+
+		// Возвращаем тестовые данные
+		movie := &FindOneResponse{
+			Status: "success",
+			Data: &MovieData{
+				Name:   "Преступники",
+				IDKp:   4859936,
+				IDImdb: "tt14531774",
+				IDTmdb: 201076,
+			},
+		}
+
+		w.WriteHeader(http.StatusOK)
+		errEncode := json.NewEncoder(w).Encode(movie)
+		if errEncode != nil {
+			t.Errorf("failed to encode movie response: %v", errEncode)
+		}
+	}))
+	defer ts.Close()
+
+	// Создаем клиент с тестовым сервером
+	client, err := NewAPIClient(ts.Client(), "test-api-key", ts.URL)
+	if err != nil {
+		t.Fatalf("failed to create client: %v", err)
+	}
+
+	movie, errMovie := client.SearchForOneByName(t.Context(), "Преступники")
+
+	// Проверяем результат
+	assert.Nil(t, errMovie)
+
+	assert.Equal(t, "success", movie.Status)
+	assert.Empty(t, movie.ErrorInfo)
+
+	assert.Equal(t, "Преступники", movie.Data.Name)
+	assert.Equal(t, 4859936, movie.Data.IDKp)
+	assert.Equal(t, "tt14531774", movie.Data.IDImdb)
+	assert.Equal(t, 201076, movie.Data.IDTmdb)
+}
