@@ -1,6 +1,9 @@
 package alloha
 
-import "errors"
+import (
+	"errors"
+	"fmt"
+)
 
 var (
 	ApiTokenEmptyError              = errors.New("api token is empty")
@@ -14,3 +17,13 @@ var (
 	InvalidTMDbIdParameterError     = errors.New("tmdb id param is invalid")
 	InvalidPageNumberParameterError = errors.New("page number param is invalid")
 )
+
+// EmptyResponseBodyError represents an error when the response body is empty
+type EmptyResponseBodyError struct {
+	StatusCode int
+}
+
+// Error implements the error interface
+func (e *EmptyResponseBodyError) Error() string {
+	return fmt.Sprintf("empty request response body, with StatusCode: %d", e.StatusCode)
+}
