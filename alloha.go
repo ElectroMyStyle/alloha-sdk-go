@@ -404,6 +404,10 @@ func (c *APIClient) doApiRequest(ctx context.Context, method, endpointApiUrl str
 		return nil, statusCode, err
 	}
 
+	if len(bodyBytes) <= 0 {
+		return nil, statusCode, &EmptyResponseBodyError{StatusCode: statusCode}
+	}
+
 	return bodyBytes, statusCode, nil
 }
 
