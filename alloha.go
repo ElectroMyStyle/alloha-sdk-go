@@ -58,7 +58,7 @@ func (c *APIClient) FindByIMDbId(ctx context.Context, tmdbId string) (*FindOneRe
 	var err error
 	var bodyBytes []byte
 	var parsedBaseURL *url.URL
-	var statusCode = 0
+	var statusCode int
 	var response *FindOneResponse
 
 	parsedBaseURL, err = url.Parse(c.baseURL)
@@ -96,7 +96,7 @@ func (c *APIClient) FindByKPId(ctx context.Context, kpId int) (*FindOneResponse,
 	var err error
 	var bodyBytes []byte
 	var parsedBaseURL *url.URL
-	var statusCode = 0
+	var statusCode int
 	var response *FindOneResponse
 
 	parsedBaseURL, err = url.Parse(c.baseURL)
@@ -134,7 +134,7 @@ func (c *APIClient) FindByTMDbId(ctx context.Context, tmdbId int) (*FindOneRespo
 	var err error
 	var bodyBytes []byte
 	var parsedBaseURL *url.URL
-	var statusCode = 0
+	var statusCode int
 	var response *FindOneResponse
 
 	parsedBaseURL, err = url.Parse(c.baseURL)
@@ -172,7 +172,7 @@ func (c *APIClient) GetListOfLatestSeries(ctx context.Context, pageNum int) (*Li
 	var err error
 	var bodyBytes []byte
 	var parsedBaseURL *url.URL
-	var statusCode = 0
+	var statusCode int
 	var response *ListOfLatestSeriesResponse
 
 	parsedBaseURL, err = url.Parse(c.baseURL)
@@ -212,7 +212,7 @@ func (c *APIClient) SearchForOneByName(ctx context.Context, movieName string) (*
 	var err error
 	var bodyBytes []byte
 	var parsedBaseURL *url.URL
-	var statusCode = 0
+	var statusCode int
 	var response *FindOneResponse
 
 	parsedBaseURL, err = url.Parse(c.baseURL)
@@ -250,7 +250,7 @@ func (c *APIClient) SearchListByName(ctx context.Context, movieName string) (*Fi
 	var err error
 	var bodyBytes []byte
 	var parsedBaseURL *url.URL
-	var statusCode = 0
+	var statusCode int
 	var response *FindListResponse
 
 	parsedBaseURL, err = url.Parse(c.baseURL)
@@ -346,7 +346,7 @@ func (c *APIClient) doApiRequest(ctx context.Context, method, endpointApiUrl str
 	var req *http.Request
 	var resp *http.Response
 	var respReader io.ReadCloser
-	var statusCode = 0
+	var statusCode int
 
 	if len(endpointApiUrl) <= 0 {
 		return nil, statusCode, EmptyEndpointApiURLError
