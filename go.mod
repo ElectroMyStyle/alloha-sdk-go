@@ -1,4 +1,4 @@
-module github.com/electromystyle/alloha-sdk-go
+module github.com/electromystyle/alloha-sdk-go/v1
 
 go 1.16
 
