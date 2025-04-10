@@ -22,7 +22,7 @@ package main
 
 import (
 	"context"
-	"github.com/electromystyle/alloha-sdk-go"
+	"github.com/electromystyle/alloha-sdk-go/alloha"
 	"log"
 	"net/http"
 	"time"
