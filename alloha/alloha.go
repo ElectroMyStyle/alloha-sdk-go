@@ -348,6 +348,9 @@ func (c *APIClient) doApiRequest(ctx context.Context, method, endpointApiUrl str
 	var respReader io.ReadCloser
 	var statusCode int
 
+	if len(method) <= 0 {
+		return nil, statusCode, EmptyHttpMethodError
+	}
 	if len(endpointApiUrl) <= 0 {
 		return nil, statusCode, EmptyEndpointApiURLError
 	}
@@ -399,7 +402,7 @@ func (c *APIClient) doApiRequest(ctx context.Context, method, endpointApiUrl str
 		}
 	}()
 
-	bodyBytes, err = io.ReadAll(resp.Body)
+	bodyBytes, err = io.ReadAll(respReader)
 	if err != nil {
 		return nil, statusCode, err
 	}
