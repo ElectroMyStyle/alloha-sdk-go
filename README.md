@@ -14,7 +14,42 @@ go get -u github.com/electromystyle/alloha-sdk-go
 
 
 ## Usage example
+To use the module's methods, you need to create and configure an `http.Client`, 
+then pass it to the `NewAPIClient` constructor, specifying the token and domain 
+to which requests will be sent. Try using the code:
+```go
+package main
 
+import (
+	"context"
+	"github.com/electromystyle/alloha-sdk-go"
+	"log"
+	"net/http"
+	"time"
+)
+
+func main() {
+	// Create HTTP Client
+	httpClient := &http.Client{
+		Timeout: 15 * time.Second,
+	}
+
+	// Create Alloha Client
+	client, clientErr := alloha.NewAPIClient(httpClient, "alloha-api-token", "https://alloha-api-domain.local")
+	if clientErr != nil {
+		log.Panicf("couldn't create api client. error: %s", clientErr.Error())
+	}
+
+	// Use methods to work with the API
+	// Kinopoisk ID: 1236630 - FBI: Most Wanted
+	movie, movieErr := client.FindByKPId(context.Background(), 1236630)
+	if movieErr != nil {
+		log.Panicf("the FindByKPId method request could not be completed. error: %s", movieErr.Error())
+	}
+	log.Println(movie.Status)
+	log.Println(movie.Data.Name)
+}
+```
 
 ## API Methods
 List of implemented API methods
