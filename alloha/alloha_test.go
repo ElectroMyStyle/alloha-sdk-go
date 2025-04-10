@@ -1,6 +1,7 @@
 package alloha
 
 import (
+	"context"
 	"encoding/json"
 	"errors"
 	"github.com/stretchr/testify/assert"
@@ -8,6 +9,7 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"testing"
+	"time"
 )
 
 func TestAPIClient_buildApiURL(t *testing.T) {
@@ -34,7 +36,7 @@ func TestAPIClient_buildApiURL(t *testing.T) {
 			name:        "invalid base API URL scheme",
 			apiToken:    "testToken",
 			baseApiUrl:  "://example.com",
-			expectedErr: errors.New("missing protocol scheme"),
+			expectedErr: errors.New("parse \"://example.com\": missing protocol scheme"),
 		},
 		{
 			name:        "invalid base API URL host",
@@ -56,7 +58,7 @@ func TestAPIClient_buildApiURL(t *testing.T) {
 			gotURL, gotErr := buildApiURL(tt.apiToken, tt.baseApiUrl)
 
 			if tt.expectedErr != nil {
-				assert.Error(t, gotErr)
+				assert.Equal(t, tt.expectedErr.Error(), gotErr.Error())
 			} else {
 				assert.NoError(t, gotErr)
 				assert.Equal(t, tt.expectedURL, gotURL)
@@ -524,4 +526,172 @@ func TestAPIClient_SearchListByName_StatusResponseSuccess(t *testing.T) {
 	assert.False(t, movie.Data[0].LastEpisode.Valid)
 	assert.Equal(t, "Прирождённые преступники", movie.Data[0].Name)
 	assert.Equal(t, 4925772, movie.Data[0].IDKp)
+}
+
+func TestAPIClient_SetApiToken(t *testing.T) {
+	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {}))
+	defer ts.Close()
+
+	tests := []struct {
+		name        string
+		apiToken    string
+		baseApiUrl  string
+		expectedURL string
+		expectedErr error
+	}{
+		{
+			name:        "empty API token",
+			apiToken:    "",
+			baseApiUrl:  "https://example.com",
+			expectedErr: ApiTokenEmptyError,
+		},
+		{
+			name:        "valid API token",
+			apiToken:    "test-api-token",
+			baseApiUrl:  "https://example.com/",
+			expectedURL: "https://example.com/?token=test-api-token",
+			expectedErr: nil,
+		},
+	}
+
+	client, err := NewAPIClient(ts.Client(), "test-api-key", "https://example.com")
+	if err != nil {
+		t.Fatalf("failed to create client: %v", err)
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			errSetToken := client.SetApiToken(tt.apiToken)
+
+			if tt.expectedErr != nil {
+				assert.ErrorIs(t, tt.expectedErr, errSetToken)
+			} else {
+				assert.NoError(t, errSetToken)
+				assert.Equal(t, tt.apiToken, client.apiToken)
+				assert.Equal(t, tt.expectedURL, client.baseURL)
+			}
+		})
+	}
+}
+
+func TestAPIClient_SetBaseApiUrl(t *testing.T) {
+	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {}))
+	defer ts.Close()
+
+	tests := []struct {
+		name               string
+		apiToken           string
+		baseApiUrl         string
+		expectedBaseApiURL string
+		expectedErr        error
+	}{
+		{
+			name:               "empty base API URL",
+			apiToken:           "test-api-token",
+			baseApiUrl:         "",
+			expectedBaseApiURL: "",
+			expectedErr:        BaseApiUrlEmptyError,
+		},
+		{
+			name:               "invalid base API URL",
+			apiToken:           "test-api-token",
+			baseApiUrl:         "alloha-test-domain",
+			expectedBaseApiURL: "",
+			expectedErr:        BaseApiUrlInvalidHostError,
+		},
+		{
+			name:               "valid base API URL",
+			apiToken:           "test-api-token",
+			baseApiUrl:         "https://example-alloha.com/",
+			expectedBaseApiURL: "https://example-alloha.com/?token=test-api-token",
+			expectedErr:        nil,
+		},
+	}
+
+	client, err := NewAPIClient(ts.Client(), "test-api-token", ts.URL)
+	if err != nil {
+		t.Fatalf("failed to create client: %v", err)
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			errSetBaseUrl := client.SetBaseApiUrl(tt.baseApiUrl)
+
+			if tt.expectedErr != nil {
+				assert.ErrorIs(t, tt.expectedErr, errSetBaseUrl)
+			} else {
+				assert.NoError(t, errSetBaseUrl)
+				assert.Equal(t, tt.apiToken, client.apiToken)
+				assert.Equal(t, tt.expectedBaseApiURL, client.baseURL)
+			}
+		})
+	}
+}
+
+func TestAPIClient_doApiRequest(t *testing.T) {
+	ctx, _ := context.WithTimeout(context.Background(), 30*time.Second)
+
+	tests := []struct {
+		name               string
+		httpMethod         string
+		contentType        string
+		requestBodyBytes   []byte
+		responseBody       []byte
+		responseBodyDec    []byte
+		responseStatusCode int
+		expectedErr        error
+	}{
+		{
+			name:               "http method param is empty",
+			httpMethod:         "",
+			contentType:        "",
+			responseBody:       nil,
+			responseBodyDec:    nil,
+			requestBodyBytes:   nil,
+			responseStatusCode: http.StatusOK,
+			expectedErr:        EmptyHttpMethodError,
+		},
+		{
+			name:               "valid content type text response",
+			httpMethod:         http.MethodGet,
+			contentType:        "text/html; charset=UTF-8",
+			responseBody:       []byte("{\"status\":\"success\"}"),
+			responseBodyDec:    []byte("{\"status\":\"success\"}"),
+			requestBodyBytes:   nil,
+			responseStatusCode: http.StatusOK,
+			expectedErr:        nil,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+				// Возвращаем тестовые данные
+				w.WriteHeader(http.StatusOK)
+				if len(tt.contentType) > 0 {
+					w.Header().Set("Content-Type", tt.contentType)
+				}
+				if tt.responseBody != nil && len(tt.responseBody) > 0 {
+					_, errWrite := w.Write(tt.responseBody)
+					if errWrite != nil {
+						t.Errorf("failed to write data to response: %v", errWrite)
+					}
+				}
+			}))
+			defer ts.Close()
+
+			client, errClient := NewAPIClient(ts.Client(), "test-api-token", ts.URL)
+			assert.NoError(t, errClient)
+
+			resp, statusCode, errRequest := client.doApiRequest(ctx, tt.httpMethod, client.baseURL, tt.requestBodyBytes)
+
+			if tt.expectedErr != nil {
+				assert.ErrorIs(t, tt.expectedErr, errRequest)
+			} else {
+				assert.NoError(t, errRequest)
+				assert.Equal(t, tt.responseStatusCode, statusCode)
+				assert.Equal(t, tt.responseBodyDec, resp)
+			}
+		})
+	}
 }
